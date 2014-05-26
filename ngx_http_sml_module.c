@@ -298,10 +298,31 @@ ngx_log_create(ngx_cycle_t *cycle, ngx_str_t *name)
 }
 #endif
 
-static ngx_str_t   uri = ngx_string("arg_debug_uri");
-static ngx_str_t   body = ngx_string("arg_debug_body");
-static ngx_str_t   header = ngx_string("arg_debug_header");
+static ngx_str_t   uri = ngx_string("debug_uri");
+static ngx_str_t   body = ngx_string("debug_body");
+static ngx_str_t   header = ngx_string("debug_header");
 static ngx_http_variable_value_t vv;
+
+static ngx_int_t
+ngx_http_get_argument(ngx_http_request_t *r, ngx_http_variable_value_t *v,
+    uintptr_t data)
+{
+    ngx_str_t *name = (ngx_str_t *) data;
+    ngx_str_t   value;
+
+    if (ngx_http_arg(r, name->data, name->len, &value) != NGX_OK) {
+        v->not_found = 1;
+        return NGX_OK;
+    }
+
+    v->data = value.data;
+    v->len = value.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+
+    return NGX_OK;
+}
 
 static u_char *
 ngx_http_sml_log_error(ngx_log_t *log, u_char *buf, size_t len)
@@ -327,14 +348,14 @@ ngx_http_sml_log_error(ngx_log_t *log, u_char *buf, size_t len)
         return p;
     }
 
-    ngx_http_variable_argument(r, &vv, (uintptr_t) uri);
+    ngx_http_get_argument(r, &vv, (uintptr_t) &uri);
     if (!vv.not_found) {
         p = ngx_snprintf(buf, len, ", uri: %V", &r->request_line);
         len -= p - buf;
         buf = p;
     }
 
-    ngx_http_variable_argument(r, &vv, (uintptr_t) body);
+    ngx_http_get_argument(r, &vv, (uintptr_t) &body);
     rb = r->request_body;
     if (!vv.not_found && rb != NULL && rb->bufs != NULL) {
         p = ngx_snprintf(buf, len, ", body: ");
@@ -349,7 +370,7 @@ ngx_http_sml_log_error(ngx_log_t *log, u_char *buf, size_t len)
         }
     }
 
-    ngx_http_variable_argument(r, &vv, (uintptr_t) header);
+    ngx_http_get_argument(r, &vv, (uintptr_t) &header);
     if (!vv.not_found) {
         part = &r->headers_in.headers.part;
         data = part->elts;
