@@ -13,8 +13,7 @@
 #include "ngx_http_sml_module.h"
 
 static int ngx_http_sml_ngx_log(lua_State *L);
-static int log_wrapper(ngx_log_t *log, const char *ident,
-    ngx_uint_t level, lua_State *L);
+static int log_wrapper(ngx_log_t *log, ngx_uint_t level, lua_State *L);
 
 /*
  * we imp this method because we hope business log
