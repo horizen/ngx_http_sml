@@ -1,5 +1,5 @@
 /*
- * ngx_http_sina_log_module.c
+ * ngx_http_sml_module.c
  *
  *  Created on: 2013年12月18日
  *      Author: yw
