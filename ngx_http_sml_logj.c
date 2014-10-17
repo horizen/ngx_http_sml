@@ -14,6 +14,21 @@
 
 static int ngx_http_sml_ngx_log(lua_State *L);
 static int log_wrapper(ngx_log_t *log, ngx_uint_t level, lua_State *L);
+static void ngx_http_lua_inject_log_consts(lua_State *L);
+
+
+int
+ngx_http_sml_inject_api(lua_State *L)
+{
+	lua_createtable(L, 0, 10);
+
+    ngx_http_lua_inject_log_consts(L);
+
+    lua_pushcfunction(L, ngx_http_sml_ngx_log);
+    lua_setfield(L, -2, "log");
+
+    return 1;
+}
 
 /*
  * we imp this method because we hope business log
@@ -227,16 +242,37 @@ log_wrapper(ngx_log_t *log, ngx_uint_t level,
     return 0;
 }
 
-int
-ngx_http_sml_inject_api(lua_State *L)
+static void
+ngx_http_lua_inject_log_consts(lua_State *L)
 {
-	lua_createtable(L, 0, 1);
+    /* {{{ nginx log level constants */
+    lua_pushinteger(L, NGX_LOG_STDERR);
+    lua_setfield(L, -2, "stderr");
 
-    lua_pushcfunction(L, ngx_http_sml_ngx_log);
-    lua_setfield(L, -2, "log");
+    lua_pushinteger(L, NGX_LOG_EMERG);
+    lua_setfield(L, -2, "emerg");
 
-    return 1;
+    lua_pushinteger(L, NGX_LOG_ALERT);
+    lua_setfield(L, -2, "alert");
+
+    lua_pushinteger(L, NGX_LOG_CRIT);
+    lua_setfield(L, -2, "crit");
+
+    lua_pushinteger(L, NGX_LOG_ERR);
+    lua_setfield(L, -2, "err");
+
+    lua_pushinteger(L, NGX_LOG_WARN);
+    lua_setfield(L, -2, "warn");
+
+    lua_pushinteger(L, NGX_LOG_NOTICE);
+    lua_setfield(L, -2, "notice");
+
+    lua_pushinteger(L, NGX_LOG_INFO);
+    lua_setfield(L, -2, "info");
+
+    lua_pushinteger(L, NGX_LOG_DEBUG);
+    lua_setfield(L, -2, "debug");
+    /* }}} */
 }
-
 
 /* vi:set ft=c ts=4 sw=4 et fdm=marker: */

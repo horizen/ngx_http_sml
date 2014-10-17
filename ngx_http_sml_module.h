@@ -32,7 +32,7 @@ typedef struct ngx_http_sml_loc_conf_s {
 extern ngx_module_t ngx_http_sml_module;
 
 
-#define DEFAULT_LOG "logs/sax.log"
+#define DEFAULT_LOG "logs/sml.log"
 #define DEFAULT_LEVEL NGX_LOG_INFO
 
 

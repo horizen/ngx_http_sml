@@ -8,7 +8,7 @@
 
 #include "ngx_http_sml_module.h"
 
-static char *ngx_http_sml_sax_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_sml_sml_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static void *ngx_http_sml_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_sml_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
 static char *ngx_sml_log_set(ngx_conf_t *cf, ngx_http_sml_log_conf_t *lgcf);
@@ -37,13 +37,14 @@ static const char *debug_levels[] = {
     "debug_http", "debug_mail", "debug_mysql"
 };
 
+
 static ngx_http_sml_log_conf_t *default_log;
 
 static ngx_command_t  ngx_http_sml_commands[] = {
 
 	{ ngx_string("sml_log"),
 	  NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_1MORE,
-	  ngx_http_sml_sax_log,
+	  ngx_http_sml_sml_log,
 	  NGX_HTTP_LOC_CONF_OFFSET,
 	  0,
 	  NULL },
@@ -99,11 +100,11 @@ ngx_int_t ngx_http_sml_preinit(ngx_conf_t *cf)
 	    return NGX_ERROR;
 	}
 	/* set by pcalloc
-	    lgcf->log_tail = 0
+	    default_log->log_tail = 0
 	*/
 	default_log->log = log;
 
-	return NGX_OK;
+    return NGX_OK;
 }
 
 static
@@ -120,7 +121,7 @@ ngx_int_t ngx_http_sml_init(ngx_conf_t *cf)
 }
 
 static char *
-ngx_http_sml_sax_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_http_sml_sml_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     ngx_http_sml_loc_conf_t *slcf = conf;
     ngx_http_sml_log_conf_t *lgcf = slcf->log_conf;
@@ -298,10 +299,6 @@ ngx_log_create(ngx_cycle_t *cycle, ngx_str_t *name)
 }
 #endif
 
-static ngx_str_t   uri = ngx_string("debug_uri");
-static ngx_str_t   body = ngx_string("debug_body");
-static ngx_str_t   header = ngx_string("debug_header");
-static ngx_http_variable_value_t vv;
 
 static ngx_int_t
 ngx_http_get_argument(ngx_http_request_t *r, ngx_http_variable_value_t *v,
@@ -327,15 +324,20 @@ ngx_http_get_argument(ngx_http_request_t *r, ngx_http_variable_value_t *v,
 static u_char *
 ngx_http_sml_log_error(ngx_log_t *log, u_char *buf, size_t len)
 {
-    u_char              *p;
-    ngx_http_request_t  *r;
-    ngx_http_log_ctx_t  *ctx;
-    ngx_http_sml_loc_conf_t	*slcf;
+    u_char                      *p;
+    ngx_http_request_t          *r;
+    ngx_http_log_ctx_t          *ctx;
+    ngx_http_sml_loc_conf_t	    *slcf;
     ngx_http_request_body_t     *rb;
+    ngx_http_variable_value_t    vv;
     ngx_chain_t                 *tmp;
     ngx_list_part_t             *part;
     ngx_table_elt_t             *data;
     ngx_uint_t					 i;
+
+    static ngx_str_t   uri = ngx_string("debug_uri");
+    static ngx_str_t   body = ngx_string("debug_body");
+    static ngx_str_t   header = ngx_string("debug_header");
 
     p = buf;
     ctx = log->data;
@@ -419,8 +421,9 @@ ngx_http_sml_log_error(ngx_log_t *log, u_char *buf, size_t len)
     p = ngx_snprintf(buf, len, ", client: %V", &ctx->connection->addr_text);
     len -= p - buf;
 
-    if (r) {
+    if (r->log_handler) {
         return r->log_handler(r, ctx->current_request, p, len);
     }
     return p;
 }
+
