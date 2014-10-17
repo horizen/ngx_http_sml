@@ -41,7 +41,7 @@ static ngx_http_sml_log_conf_t *default_log;
 
 static ngx_command_t  ngx_http_sml_commands[] = {
 
-	{ ngx_string("sax_log"),
+	{ ngx_string("sml_log"),
 	  NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_1MORE,
 	  ngx_http_sml_sax_log,
 	  NGX_HTTP_LOC_CONF_OFFSET,

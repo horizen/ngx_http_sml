@@ -7,11 +7,11 @@ Directives
 ==========
 
 
-sax_log
+sml_log
 --------------------
-**syntax:** *sax_log path [tail=on | off] level*
+**syntax:** *sml_log path [tail=on | off] level*
 
-**default:** *sax_log logs/sax.log tail=off info*
+**default:** *sml_log logs/sax.log tail=off info*
 
 **context:** *http, server, location*
 
