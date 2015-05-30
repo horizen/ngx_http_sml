@@ -20,8 +20,6 @@ ngx_http_sml_inject_api(lua_State *L)
 {
 	lua_createtable(L, 0, 7);
 
-    ngx_http_lua_inject_log_consts(L);
-
     lua_pushcfunction(L, ngx_http_sml_ngx_log);
     lua_setfield(L, -2, "log");
 
