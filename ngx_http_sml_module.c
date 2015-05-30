@@ -1,5 +1,5 @@
 /*
- * ngx_http_sina_log_module.c
+ * ngx_http_sml_module.c
  *
  *  Created on: 2013年12月18日
  *      Author: yw
@@ -8,7 +8,7 @@
 
 #include "ngx_http_sml_module.h"
 
-static char *ngx_http_sml_sax_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_sml_sml_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static void *ngx_http_sml_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_sml_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
 static char *ngx_sml_log_set(ngx_conf_t *cf, ngx_http_sml_log_conf_t *lgcf);
@@ -41,9 +41,9 @@ static ngx_http_sml_log_conf_t *default_log;
 
 static ngx_command_t  ngx_http_sml_commands[] = {
 
-	{ ngx_string("sax_log"),
+	{ ngx_string("sml_log"),
 	  NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_1MORE,
-	  ngx_http_sml_sax_log,
+	  ngx_http_sml_sml_log,
 	  NGX_HTTP_LOC_CONF_OFFSET,
 	  0,
 	  NULL },
@@ -120,7 +120,7 @@ ngx_int_t ngx_http_sml_init(ngx_conf_t *cf)
 }
 
 static char *
-ngx_http_sml_sax_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_http_sml_sml_log(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     ngx_http_sml_loc_conf_t *slcf = conf;
     ngx_http_sml_log_conf_t *lgcf = slcf->log_conf;
@@ -348,59 +348,61 @@ ngx_http_sml_log_error(ngx_log_t *log, u_char *buf, size_t len)
         return p;
     }
 
-    ngx_http_get_argument(r, &vv, (uintptr_t) &uri);
-    if (!vv.not_found) {
-        p = ngx_snprintf(buf, len, ", uri: %V", &r->request_line);
-        len -= p - buf;
-        buf = p;
-    }
-
-    ngx_http_get_argument(r, &vv, (uintptr_t) &body);
-    rb = r->request_body;
-    if (!vv.not_found && rb != NULL && rb->bufs != NULL) {
-        p = ngx_snprintf(buf, len, ", body: ");
-        len -= p - buf;
-        buf = p;
-        tmp = rb->bufs;
-        while (tmp != NULL) {
-            p = ngx_snprintf(buf, len, "%*s", tmp->buf->last - tmp->buf->pos, tmp->buf->pos);
+    if (log->log_level == NGX_LOG_DEBUG_ALL) {
+        ngx_http_get_argument(r, &vv, (uintptr_t) &uri);
+        if (!vv.not_found) {
+            p = ngx_snprintf(buf, len, ", uri: %V", &r->request_line);
             len -= p - buf;
             buf = p;
-            tmp = tmp->next;
         }
-    }
 
-    ngx_http_get_argument(r, &vv, (uintptr_t) &header);
-    if (!vv.not_found) {
-        part = &r->headers_in.headers.part;
-        data = part->elts;
+        ngx_http_get_argument(r, &vv, (uintptr_t) &body);
+        rb = r->request_body;
+        if (!vv.not_found && rb != NULL && rb->bufs != NULL) {
+            p = ngx_snprintf(buf, len, ", body: ");
+            len -= p - buf;
+            buf = p;
+            tmp = rb->bufs;
+            while (tmp != NULL) {
+                p = ngx_snprintf(buf, len, "%*s", tmp->buf->last - tmp->buf->pos, tmp->buf->pos);
+                len -= p - buf;
+                buf = p;
+                tmp = tmp->next;
+            }
+        }
 
-        for (i = 0; /* void */; i++) {
-            if (i >= part->nelts) {
-                if (part->next == NULL) {
+        ngx_http_get_argument(r, &vv, (uintptr_t) &header);
+        if (!vv.not_found) {
+            part = &r->headers_in.headers.part;
+            data = part->elts;
+
+            for (i = 0; /* void */; i++) {
+                if (i >= part->nelts) {
+                    if (part->next == NULL) {
+                        break;
+                    }
+
+                    part = part->next;
+                    data = part->elts;
+                    i = 0;
+                }
+                if (vv.len == 1 && vv.data[0] == '*') {
+                    p = ngx_snprintf(buf, len, ", %V: %V", &data[i].key, &data[i].value);
+                    len -= p - buf;
+                    buf = p;
+                    continue; 
+                }
+
+                if (data[i].key.len != vv.len) {
+                    continue;
+                }
+
+                if (ngx_strncmp(data[i].lowcase_key, vv.data, vv.len) == 0) {
+                    p = ngx_snprintf(buf, len, ", %V: %V", &data[i].key, &data[i].value);
+                    len -= p - buf;
+                    buf = p;
                     break;
                 }
-                
-                part = part->next;
-                data = part->elts;
-                i = 0;
-            }
-            if (vv.len == 1 && vv.data[0] == '*') {
-                p = ngx_snprintf(buf, len, ", %V: %V", &data[i].key, &data[i].value);
-                len -= p - buf;
-                buf = p;
-                continue; 
-            }
-
-            if (data[i].key.len != vv.len) {
-                continue;
-            }
-
-            if (ngx_strncmp(data[i].lowcase_key, vv.data, vv.len) == 0) {
-                p = ngx_snprintf(buf, len, ", %V: %V", &data[i].key, &data[i].value);
-                len -= p - buf;
-                buf = p;
-                break;
             }
         }
     }
