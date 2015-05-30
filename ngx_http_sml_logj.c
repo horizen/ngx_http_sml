@@ -235,6 +235,34 @@ ngx_http_sml_inject_api(lua_State *L)
     lua_pushcfunction(L, ngx_http_sml_ngx_log);
     lua_setfield(L, -2, "log");
 
+    /* {{{ sml log level constants */
+    lua_pushinteger(L, NGX_LOG_STDERR);
+    lua_setfield(L, -2, "stderr");
+
+    lua_pushinteger(L, NGX_LOG_EMERG);
+    lua_setfield(L, -2, "emerg");
+
+    lua_pushinteger(L, NGX_LOG_ALERT);
+    lua_setfield(L, -2, "alert");
+
+    lua_pushinteger(L, NGX_LOG_CRIT);
+    lua_setfield(L, -2, "crit");
+
+    lua_pushinteger(L, NGX_LOG_ERR);
+    lua_setfield(L, -2, "err");
+
+    lua_pushinteger(L, NGX_LOG_WARN);
+    lua_setfield(L, -2, "warn");
+
+    lua_pushinteger(L, NGX_LOG_NOTICE);
+    lua_setfield(L, -2, "notice");
+
+    lua_pushinteger(L, NGX_LOG_INFO);
+    lua_setfield(L, -2, "info");
+
+    lua_pushinteger(L, NGX_LOG_DEBUG);
+    lua_setfield(L, -2, "debug");
+    /* }}} */
     return 1;
 }
 
