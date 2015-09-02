@@ -11,7 +11,7 @@ sml_log
 --------------------
 **syntax:** *sml_log path [tail=on | off] level*
 
-**default:** *sml_log logs/sax.log tail=off info*
+**default:** *sml_log logs/biz.log tail=off info*
 
 **context:** *http, server, location*
 

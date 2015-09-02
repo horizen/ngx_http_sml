@@ -61,8 +61,12 @@ ngx_http_sml_ngx_log(lua_State *L)
 
     r = ngx_http_lua_get_request(L);
 
-    slcf = ngx_http_get_module_loc_conf(r, ngx_http_sml_module);
-    log = slcf->log_conf->log;
+    if (r) {
+        slcf = ngx_http_get_module_loc_conf(r, ngx_http_sml_module);
+        log = slcf->log_conf->log;
+    } else {
+        log = ngx_cycle->log;
+    }
 
     if (r && r->connection && r->connection->log) {
         clog = r->connection->log;
